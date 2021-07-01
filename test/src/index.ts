@@ -13,33 +13,11 @@ const client = new DiscordClient({
 async function bootstrap() {
   await client.gateway.login();
 
-  // const message = new MessageBuilder()
-  //   .setContent("Hello world")
-  //   .addEmbed(new EmbedBuilder().setDescription("Description here"))
-  //   .addEmbed(
-  //     new EmbedBuilder()
-  //       .setColor(128)
-  //       .setDescription("Description here")
-  //       .setTitle("Hello world 2")
-  //   );
-  // message
-  //   .addComponent(
-  //     new MessageActionRowBuilder().addComponent(
-  //       new MessageButtonBuilder()
-  //         .setLabel("Button label")
-  //         .setStyle(MessageButtonType.SUCCESS)
-  //     )
-  //   )
-  //   .addComponent(
-  //     new MessageActionRowBuilder().addComponent(
-  //       new MessageButtonBuilder()
-  //         .setLabel("Button label")
-  //         .setStyle(MessageButtonType.SUCCESS)
-  //     )
-  //   );
-  // const data = await client.sendMessage("837812905410953266", message);
+  const genericInteraction = client.interactions.register(() => {
+    console.log("interaction triggered");
+  });
 
-  const message = new MessageBuilder().setContent("What are you?");
+  const message = new MessageBuilder().setContent("Who are you?");
   const actionRow = new MessageActionRowBuilder().addComponent(
     new MessageSelectMenuBuilder()
       .addOption({
@@ -53,10 +31,11 @@ async function bootstrap() {
         description: "gordon ramsay being haha",
       })
       .setPlaceholder("Select an option, or not, idc!")
+      .onInteract(genericInteraction)
   );
   message.addComponent(actionRow);
-  const data = await client.sendMessage("837812905410953266", message);
-  console.log("sent message successfully", data);
+  client.sendMessage("837812905410953266", message);
+  console.log("sent message successfully");
 }
 
 bootstrap();

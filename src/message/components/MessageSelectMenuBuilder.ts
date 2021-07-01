@@ -1,3 +1,9 @@
+import { DiscordClient } from "../../Client";
+import {
+  InteractionCallback,
+  InteractionHandler,
+  InteractionId,
+} from "../../interaction/InteractionCollection";
 import { MessageComponentType } from "./ComponentTypes";
 import { MessageComponent } from "./MessageComponent";
 
@@ -14,6 +20,7 @@ export class MessageSelectMenuBuilder extends MessageComponent {
   #minVal: number;
   #maxVal: number;
   #placeholder?: string;
+  #interactionId?: InteractionId;
   static maxOptions: number = 25;
 
   constructor() {
@@ -62,9 +69,27 @@ export class MessageSelectMenuBuilder extends MessageComponent {
     return this;
   }
 
-  // TODO custom_id
+  // interactions
+  onFirstInteract(
+    client: DiscordClient,
+    runner: InteractionCallback
+  ): MessageSelectMenuBuilder {
+    // TODO could leak if never ran or failed to be sent
+    this.#interactionId = client.interactions._registerTemporary(runner);
+    return this;
+  }
+  onInteract(handler: InteractionHandler): MessageSelectMenuBuilder {
+    this.#interactionId = handler.id;
+    return this;
+  }
+  onInteractId(id: InteractionId): MessageSelectMenuBuilder {
+    this.#interactionId = id;
+    return this;
+  }
 
   get raw(): any {
+    if (!this.#interactionId)
+      throw new Error("Cant have a select menu without a linked interaction");
     return {
       type: this.t,
       options: this.#options,
@@ -74,7 +99,7 @@ export class MessageSelectMenuBuilder extends MessageComponent {
         this.#placeholder && this.#placeholder.length > 0
           ? this.#placeholder
           : undefined,
-      custom_id: "Hello world",
+      custom_id: this.#interactionId,
     };
   }
 }

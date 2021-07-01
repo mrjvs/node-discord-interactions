@@ -1,3 +1,9 @@
+import { DiscordClient } from "../../Client";
+import {
+  InteractionCallback,
+  InteractionHandler,
+  InteractionId,
+} from "../../interaction/InteractionCollection";
 import { MessageButtonType, MessageComponentType } from "./ComponentTypes";
 import { MessageComponent } from "./MessageComponent";
 
@@ -5,6 +11,7 @@ export class MessageButtonBuilder extends MessageComponent {
   #style: MessageButtonType;
   #url?: string;
   #label?: string;
+  #interactionId?: InteractionId;
 
   constructor() {
     super(MessageComponentType.BUTTON);
@@ -38,11 +45,30 @@ export class MessageButtonBuilder extends MessageComponent {
     return this.#label;
   }
 
+  // interactions
+  onFirstInteract(
+    client: DiscordClient,
+    runner: InteractionCallback
+  ): MessageButtonBuilder {
+    // TODO could leak if never ran or failed to be sent
+    this.#interactionId = client.interactions._registerTemporary(runner);
+    return this;
+  }
+  onInteract(handler: InteractionHandler): MessageButtonBuilder {
+    this.#interactionId = handler.id;
+    return this;
+  }
+  onInteractId(id: InteractionId): MessageButtonBuilder {
+    this.#interactionId = id;
+    return this;
+  }
+
   // TODO emoji
-  // TODO custom id
   // TODO disabled
 
   get raw(): any {
+    if (this.#style !== MessageButtonType.LINK && !this.#interactionId)
+      throw new Error("Cant have a button without a linked interaction");
     return {
       type: this.t,
       style: this.#style,
@@ -51,7 +77,7 @@ export class MessageButtonBuilder extends MessageComponent {
           ? this.#url
           : undefined,
       label: this.#label ? this.#label : undefined,
-      custom_id: this.#style !== MessageButtonType.LINK ? "test" : undefined,
+      custom_id: this.#interactionId ? this.#interactionId : undefined,
     };
   }
 }

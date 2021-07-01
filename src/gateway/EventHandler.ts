@@ -12,6 +12,7 @@ export class EventHandler {
     this.eventMap = {
       GUILD_CREATE: this.eventGuildCreate,
       READY: this.eventReady,
+      INTERACTION_CREATE: this.eventInteractionCreate,
     };
     Object.keys(this.eventMap).forEach(
       (key: string) => (this.eventMap[key] = this.eventMap[key].bind(this))
@@ -30,11 +31,15 @@ export class EventHandler {
   }
 
   private eventGuildCreate(data: any): void {
-    console.log("Guild was created", data);
+    console.log("Guild was created");
   }
 
   private eventReady(data: any): void {
     this.gatewayClient._loginPromise?.resolve();
-    console.log("Ready event", data);
+    console.log("Ready event");
+  }
+
+  private eventInteractionCreate(data: any): void {
+    this.gatewayClient.client.interactions._runInteraction(data);
   }
 }
