@@ -18,6 +18,7 @@ export class GatewayClient {
   packetSender: PacketSender;
   heartbeatManager: HeartbeatManager;
   connected: boolean;
+  _loginPromise: any | undefined | boolean;
 
   constructor(client: DiscordClient) {
     this.packetHandler = new PacketHandler(this);
@@ -53,6 +54,8 @@ export class GatewayClient {
   }
 
   async login(): Promise<void> {
+    if (this._loginPromise) throw new Error("Already logging in");
+    this._loginPromise = true;
     const { data } = await doFetch("/gateway/bot", {
       client: this.client,
       auth: true,
@@ -63,6 +66,13 @@ export class GatewayClient {
           (err as UnauthorizedException).data
         );
       throw err;
+    });
+
+    this._loginPromise = {
+      resolve: null,
+    };
+    const promise = new Promise((resolve) => {
+      this._loginPromise.resolve = resolve;
     });
 
     await new Promise((resolve, reject) => {
@@ -79,5 +89,9 @@ export class GatewayClient {
         reject(new GatewayConnectionError(code, reason));
       });
     });
+
+    // wait for ready
+    await promise;
+    this._loginPromise = true;
   }
 }

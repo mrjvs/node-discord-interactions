@@ -1,7 +1,10 @@
-import { MessageActionRowBuilder } from "../../src/message/components/MessageActionRowBuilder";
-import { MessageSelectMenuBuilder } from "../../src/message/components/MessageSelectMenuBuilder";
-import { MessageBuilder } from "../../src/message/MessageBuilder";
-import { DiscordClient, config } from "./lib";
+import {
+  DiscordClient,
+  config,
+  MessageSelectMenuBuilder,
+  MessageBuilder,
+  MessageActionRowBuilder,
+} from "./lib";
 
 const client = new DiscordClient({
   token: config.token,
