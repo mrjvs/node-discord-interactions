@@ -1,0 +1,28 @@
+{
+  "name": "discord-interactions",
+  "version": "0.1.0",
+  "description": "Library to work with discord interactions",
+  "main": "lib/index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrjvs/node-discord-interactions.git"
+  },
+  "author": "mrjvs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mrjvs/node-discord-interactions/issues"
+  },
+  "homepage": "https://github.com/mrjvs/node-discord-interactions#readme",
+  "devDependencies": {
+    "prettier": "^2.3.2",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^4.3.5"
+  }
+}
