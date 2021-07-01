@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "tsc --build tsconfig.json"
+    "build": "tsc --build tsconfig.json",
+    "dev": "tsc-watch --onSuccess 'node ./test/out/test/src/index.js' -p ./test/tsconfig.json"
   },
   "repository": {
     "type": "git",
@@ -20,9 +21,19 @@
   },
   "homepage": "https://github.com/mrjvs/node-discord-interactions#readme",
   "devDependencies": {
+    "@types/node-fetch": "^2.5.10",
+    "@types/ws": "^7.4.5",
+    "cross-env": "^7.0.3",
     "prettier": "^2.3.2",
+    "tsc-watch": "^4.4.0",
+    "tsconfig-paths": "^3.9.0",
+    "tsconfig-paths-webpack-plugin": "^3.5.1",
     "tslint": "^6.1.3",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1",
+    "ws": "^7.5.1"
   }
 }
