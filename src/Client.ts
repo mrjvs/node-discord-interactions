@@ -25,12 +25,13 @@ export class DiscordClient {
   gateway: GatewayClient;
 
   // TODO temp
-  async sendMessage(channelId: string, message: MessageBuilder): Promise<void> {
-    await doFetch(`/channels/${channelId}/messages`, {
+  async sendMessage(channelId: string, message: MessageBuilder): Promise<any> {
+    const d = await doFetch(`/channels/${channelId}/messages`, {
       method: HttpMethods.POST,
       auth: true,
       client: this,
       body: message.raw,
     });
+    return d;
   }
 }

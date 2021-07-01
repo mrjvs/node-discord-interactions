@@ -27,13 +27,16 @@ export class PacketHandler {
       // unhandled packet type
       return;
     }
-    if (packet.op === DiscordPacketTypes.HELLO) this.handlePacket(packet.d);
+    if (packet.op === DiscordPacketTypes.HELLO) this.handleHello(packet.d);
     else if (packet.op === DiscordPacketTypes.HEARTBEAT_ACK)
-      this.handlePacket(packet.d);
+      this.handleHeartbeatAck();
+    else if (packet.op === DiscordPacketTypes.EVENT)
+      this.eventHandler.handleEvent(packet);
   }
 
   handleHello(data: HelloPacketData) {
     this.gatewayClient.heartbeatManager.startHeartbeat(data.heartbeat_interval);
+    this.gatewayClient.packetSender.sendIdentify();
   }
 
   handleHeartbeatAck() {

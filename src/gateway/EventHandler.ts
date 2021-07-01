@@ -19,6 +19,7 @@ export class EventHandler {
     if (!packet.t || !this.eventMap[packet.t]) {
       // TODO debug log
       // unhandled gateway event
+      console.log(packet.t, packet.d);
       return;
     }
     this.eventMap[packet.t](packet.d);

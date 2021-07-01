@@ -29,6 +29,7 @@ export class GatewayClient {
   }
 
   private setupListeners() {
+    console.log("connected to gateway");
     this.wsClient?.on("message", (text: string) => {
       let parsed: DiscordPacket;
       try {
@@ -44,6 +45,8 @@ export class GatewayClient {
       this.connected = true;
     });
     this.wsClient?.on("close", () => {
+      // TODO temp
+      console.log("disconnected from gateway");
       this.connected = false;
     });
     // TODO reconnection logic
