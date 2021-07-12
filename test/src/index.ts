@@ -1,13 +1,12 @@
-import {
-  DiscordClient,
-  config,
-  MessageSelectMenuBuilder,
-  MessageBuilder,
-  MessageActionRowBuilder,
-} from "./lib";
+import { DiscordClient, config, SelectMenu, Button, Message } from "./lib";
 
 const client = new DiscordClient({
   token: config.token,
+  applicationId: config.appId,
+  logger: {
+    enabled: true,
+    debug: true,
+  },
 });
 
 async function bootstrap() {
@@ -17,24 +16,52 @@ async function bootstrap() {
     console.log("interaction triggered");
   });
 
-  const message = new MessageBuilder().setContent("Who are you?");
-  const actionRow = new MessageActionRowBuilder().addComponent(
-    new MessageSelectMenuBuilder()
-      .addOption({
-        label: "Hello world",
-        value: "1",
-        description: "The hello that the world said",
-      })
-      .addOption({
-        label: "An idiot sandwhich",
-        value: "2",
-        description: "gordon ramsay being haha",
-      })
-      .setPlaceholder("Select an option, or not, idc!")
-      .onInteract(genericInteraction)
+  await client.sendMessage(
+    "837812905410953266",
+    Message.create({
+      content: "Hello world",
+      components: [
+        [
+          Button.create(
+            {
+              label: "Click me first",
+              onInteract: genericInteraction,
+            },
+            client
+          ),
+          Button.create(
+            {
+              label: "Click me second",
+              onInteract: genericInteraction,
+            },
+            client
+          ),
+        ],
+        [
+          SelectMenu.create(
+            {
+              options: [
+                { label: "One", value: "1" },
+                { label: "Two", value: "2" },
+                { label: "three", value: "3" },
+                {
+                  label: "Four",
+                  value: "4",
+                  description: "Four is special",
+                  default: true,
+                },
+                { label: "Five", value: "5" },
+              ],
+              minValue: 1,
+              maxValue: 5,
+              onInteract: genericInteraction,
+            },
+            client
+          ),
+        ],
+      ],
+    })
   );
-  message.addComponent(actionRow);
-  client.sendMessage("837812905410953266", message);
   console.log("sent message successfully");
 }
 

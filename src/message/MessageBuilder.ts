@@ -1,4 +1,5 @@
 import { MessageActionRowBuilder } from "./components/MessageActionRowBuilder";
+import { MessageComponent } from "./components/MessageComponent";
 import { EmbedBuilder } from "./EmbedBuilder";
 
 export class MessageBuilder {
@@ -50,3 +51,28 @@ export class MessageBuilder {
     };
   }
 }
+
+export interface MessageType {
+  content: string;
+  embeds?: any[];
+  components?: MessageComponent[][];
+}
+
+export const Message = {
+  create(msg: MessageType) {
+    const b = new MessageBuilder();
+    b.setContent(msg.content);
+    if (msg.embeds) msg.embeds.forEach((v) => b.addEmbed(v));
+    if (msg.components) {
+      msg.components.forEach((v) => {
+        const row = new MessageActionRowBuilder();
+        v.forEach((j) => row.addComponent(j));
+        b.addComponent(row);
+      });
+    }
+    return b;
+  },
+  builder() {
+    return new MessageBuilder();
+  },
+};

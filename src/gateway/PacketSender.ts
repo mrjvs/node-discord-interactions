@@ -1,5 +1,6 @@
 import { DiscordPacket, DiscordPacketTypes } from "./GatewayTypes";
 import { GatewayClient } from "./GatewayClient";
+import { LogType } from "../Logger";
 
 export class PacketSender {
   gatewayClient: GatewayClient;
@@ -19,8 +20,10 @@ export class PacketSender {
 
   sendRaw(data: DiscordPacket) {
     if (!this.gatewayClient.connected) {
-      // TODO debug log
-      // attempted to send packet while not connected to gateway
+      this.gatewayClient.client.logger.logItem({
+        type: LogType.WARN,
+        message: `Tried sending packet without being connected to the gateway`,
+      });
       return;
     }
     this.gatewayClient.wsClient?.send(JSON.stringify(data));
@@ -37,6 +40,10 @@ export class PacketSender {
 
   // TODO intents
   sendIdentify() {
+    this.gatewayClient.client.logger.logItem({
+      type: LogType.INFO,
+      message: `Identifying with gateway (step 2/3)`,
+    });
     this.sendRaw(
       this.buildPacket(DiscordPacketTypes.IDENTIFY, {
         token: this.gatewayClient.client.options.token,

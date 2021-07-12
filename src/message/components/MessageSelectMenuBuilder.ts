@@ -15,7 +15,7 @@ export interface SelectMenuOption {
   default?: boolean;
 }
 
-export class MessageSelectMenuBuilder extends MessageComponent {
+class MessageSelectMenuBuilder extends MessageComponent {
   #options: SelectMenuOption[];
   #minVal: number;
   #maxVal: number;
@@ -103,3 +103,33 @@ export class MessageSelectMenuBuilder extends MessageComponent {
     };
   }
 }
+
+export interface SelectMenuType {
+  placeholder?: string;
+  onInteract?: InteractionHandler;
+  onFirstInteract?: InteractionCallback;
+  interactId?: InteractionId;
+  minValue?: number;
+  maxValue?: number;
+  options: SelectMenuOption[];
+}
+
+export const SelectMenu = {
+  create(
+    menu: SelectMenuType,
+    client: DiscordClient
+  ): MessageSelectMenuBuilder {
+    const b = new MessageSelectMenuBuilder();
+    if (menu.placeholder) b.setPlaceholder(menu.placeholder);
+    if (menu.minValue) b.setMinSelectable(menu.minValue);
+    if (menu.maxValue) b.setMaxSelectable(menu.maxValue);
+    menu.options.forEach((v) => b.addOption(v));
+    if (menu.onFirstInteract) b.onFirstInteract(client, menu.onFirstInteract);
+    else if (menu.onInteract) b.onInteract(menu.onInteract);
+    else if (menu.interactId) b.onInteractId(menu.interactId);
+    return b;
+  },
+  builder(): MessageSelectMenuBuilder {
+    return new MessageSelectMenuBuilder();
+  },
+};

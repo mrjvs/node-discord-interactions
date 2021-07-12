@@ -1,3 +1,4 @@
+import { LogType } from "../Logger";
 import { GatewayClient } from "./GatewayClient";
 import { DiscordPacket, DiscordPacketTypes } from "./GatewayTypes";
 
@@ -22,21 +23,23 @@ export class EventHandler {
   handleEvent(packet: DiscordPacket): void {
     if (packet.op !== DiscordPacketTypes.EVENT) return;
     if (!packet.t || !this.eventMap[packet.t]) {
-      // TODO debug log
-      // unhandled gateway event
-      console.log(packet.t, packet.d);
+      this.gatewayClient.client.logger.logItem({
+        type: LogType.DEBUG,
+        message: `Unhandled event: ${packet.t}`,
+      });
       return;
     }
     this.eventMap[packet.t](packet.d);
   }
 
-  private eventGuildCreate(data: any): void {
-    console.log("Guild was created");
-  }
+  private eventGuildCreate(data: any): void {}
 
   private eventReady(data: any): void {
     this.gatewayClient._loginPromise?.resolve();
-    console.log("Ready event");
+    this.gatewayClient.client.logger.logItem({
+      type: LogType.INFO,
+      message: `Gateway ready (step 3/3), logged in as ${data.user.username}#${data.user.discriminator}`,
+    });
   }
 
   private eventInteractionCreate(data: any): void {

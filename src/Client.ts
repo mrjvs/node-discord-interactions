@@ -1,6 +1,7 @@
 import { GatewayClient } from "./gateway/GatewayClient";
 import { InteractionCollection } from "./interaction/InteractionCollection";
-import { MessageBuilder } from "./message/MessageBuilder";
+import { DiscordLogger, LogItem } from "./Logger";
+import { Message, MessageBuilder } from "./message/MessageBuilder";
 import { doFetch, HttpMethods } from "./Request";
 import { Utils } from "./utils";
 
@@ -18,12 +19,22 @@ export interface DiscordClientSettings {
   os: string;
 }
 
+export interface DiscordLogSettings {
+  logFunction?: (item: LogItem) => void;
+  printType?: "json" | "human" | "human-color";
+  enabled: boolean;
+  debug?: boolean;
+}
+
 export interface DiscordSettings {
-  token: string;
+  token?: string;
+  applicationId: string;
   discordUrl?: string;
   idPrefix?: string;
   clientSettings?: DiscordClientSettings;
   startupPresence?: ClientStatus;
+  logger?: DiscordLogSettings;
+  publicKey?: string;
 }
 
 const DiscordSettingsDefaults: any = {
@@ -35,17 +46,24 @@ const DiscordSettingsDefaults: any = {
     device: "node-discord-interactions",
   },
   startupPresence: ClientStatus.ONLINE,
+  logger: {
+    printType: "human-color",
+    enabled: true,
+    debug: false,
+  },
 };
 
 export class DiscordClient {
   options: DiscordSettings;
   utils: Utils;
+  logger: DiscordLogger;
 
   constructor(settings: DiscordSettings) {
     this.options = { ...DiscordSettingsDefaults, ...settings };
     this.gateway = new GatewayClient(this);
     this.utils = new Utils(this);
     this.interactions = new InteractionCollection(this);
+    this.logger = new DiscordLogger(this);
   }
 
   // parts

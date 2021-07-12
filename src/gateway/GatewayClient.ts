@@ -1,5 +1,6 @@
 import WebSocket = require("ws");
 import { DiscordClient } from "../Client";
+import { LogType } from "../Logger";
 import { doFetch, UnauthorizedException } from "../Request";
 import {
   DiscordPacket,
@@ -30,14 +31,15 @@ export class GatewayClient {
   }
 
   private setupListeners() {
-    console.log("connected to gateway");
     this.wsClient?.on("message", (text: string) => {
       let parsed: DiscordPacket;
       try {
         parsed = JSON.parse(text);
       } catch (err) {
-        // TODO debug log
-        // failed to parse
+        this.client.logger.logItem({
+          type: LogType.WARN,
+          message: `Received unparsable packet from gateway`,
+        });
         return;
       }
       this.packetHandler.handlePacket(parsed);
@@ -47,7 +49,10 @@ export class GatewayClient {
     });
     this.wsClient?.on("close", () => {
       // TODO temp
-      console.log("disconnected from gateway");
+      this.client.logger.logItem({
+        type: LogType.ERROR,
+        message: `Disconnected from the gateway`,
+      });
       this.connected = false;
     });
     // TODO reconnection logic
@@ -81,11 +86,19 @@ export class GatewayClient {
         this.wsClient?.removeAllListeners();
         this.connected = true;
         this.setupListeners();
+        this.client.logger.logItem({
+          type: LogType.INFO,
+          message: `Connected to gateway (step 1/3)`,
+        });
         resolve(true);
       });
       this.wsClient.once("close", (code: number, reason: string) => {
         this.wsClient?.removeAllListeners();
         this.wsClient = undefined;
+        this.client.logger.logItem({
+          type: LogType.INFO,
+          message: `Failed to connect to gateway`,
+        });
         reject(new GatewayConnectionError(code, reason));
       });
     });

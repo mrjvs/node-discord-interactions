@@ -1,3 +1,4 @@
+import { LogType } from "../Logger";
 import { GatewayClient } from "./GatewayClient";
 
 export class HeartbeatManager {
@@ -18,7 +19,10 @@ export class HeartbeatManager {
     this.gotAck = true;
     this.heartbeatInterval = setInterval(() => {
       if (!this.gotAck) {
-        // TODO debug log
+        this.gatewayClient.client.logger.logItem({
+          type: LogType.FATAL,
+          message: "Missing heartbeat acknowledgement",
+        });
         // TODO terminate immediately
       }
       this.gatewayClient.packetSender.sendHeartbeat();

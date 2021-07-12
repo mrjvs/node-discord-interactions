@@ -5,6 +5,7 @@ import {
 } from "./GatewayTypes";
 import { GatewayClient } from "./GatewayClient";
 import { EventHandler } from "./EventHandler";
+import { LogType } from "../Logger";
 
 interface HelloPacketData {
   heartbeat_interval: number;
@@ -23,8 +24,10 @@ export class PacketHandler {
     if (packet.s !== undefined && packet.s !== null)
       this.gatewayClient.sequence = packet.s;
     if (!DiscordPacketTypeReceiveList.includes(packet.op)) {
-      // TODO debug log
-      // unhandled packet type
+      this.gatewayClient.client.logger.logItem({
+        type: LogType.DEBUG,
+        message: `Unhandled packet type: ${packet.op}`,
+      });
       return;
     }
     if (packet.op === DiscordPacketTypes.HELLO) this.handleHello(packet.d);

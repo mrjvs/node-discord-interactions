@@ -1,4 +1,6 @@
 import { DiscordClient } from "../Client";
+import { LogType } from "../Logger";
+import { sign as signTools } from "tweetnacl";
 
 export type InteractionId = string;
 export type InteractionCallback = () => void;
@@ -68,12 +70,79 @@ export class InteractionCollection {
   _runInteraction(data: any) {
     if (!data?.data?.custom_id) return;
     const handler = this.handlers.get(data?.data?.custom_id);
-    if (!handler) return; // TODO unhandled interaction id, what do?
+    if (!handler) {
+      this.client.logger.logItem({
+        type: LogType.WARN,
+        message: `Unhandled interaction with custom_id of ${data?.data?.custom_id}`,
+      });
+      return;
+    }
     try {
       handler?.cb();
     } catch (err) {
-      // TODO do something here
+      this.client.logger.logItem({
+        type: LogType.WARN,
+        message: `Exception occured at interaction handler for id: ${data?.data?.custom_id}`,
+        exception: err,
+      });
     }
     if (handler.useOnce) this.handlers.delete(handler.id);
+  }
+
+  // run this middleware before body gets parsed
+  getExpressMiddleware() {
+    return (req: any, _: any, next: any) => {
+      req.discordRawBody = new Promise((resolve) => {
+        let buf = "";
+        req.on("data", (x: any) => (buf += x));
+        req.on("end", () => {
+          resolve(buf);
+        });
+      });
+      next();
+    };
+  }
+
+  // requires the middleware and the body to be parsed into req.body
+  getExpressRouter() {
+    return async (req: any, res: any) => {
+      // validate security headers
+      if (!req.discordRawBody) {
+        this.client.logger.logItem({
+          type: LogType.WARN,
+          message: "Middleware missing on webhook router",
+        });
+        return res.status(500).json({ message: "Middleware misconfigured" });
+      }
+      if (!this.client.options.publicKey) {
+        this.client.logger.logItem({
+          type: LogType.WARN,
+          message: "Public key missing on configuration, needed for webhook",
+        });
+        return res.status(500).json({ message: "Public key misconfigured" });
+      }
+      const raw = await req.discordRawBody;
+      const sign = req.header("X-Signature-Ed25519");
+      const time = req.header("X-Signature-Timestamp");
+      if (!raw || !sign || !time)
+        return res.status(401).json({ message: "missing signature headers" });
+      const verified = signTools.detached.verify(
+        Buffer.from(time + raw),
+        Buffer.from(sign, "hex"),
+        Buffer.from(this.client.options.publicKey, "hex")
+      );
+      if (!verified)
+        res.status(401).json({ message: "Failed to validate signature" });
+
+      // acknowledge ping
+      if (req?.body?.type == 1) {
+        res.status(200).json({
+          type: 1,
+        });
+      }
+
+      // handle interaction
+      if (req?.body) this._runInteraction(req.body);
+    };
   }
 }
