@@ -12,4 +12,10 @@ A discord library, primarily focused on interactions and slash commands
 
 ## Todo
 
-- [ ] everything
+- [ ] turn data into easily usable classes
+- [ ] single express middleware for multiple clients
+- [x] interaction responding
+- [ ] slash commands interactions
+- [ ] interaction follow ups
+- [ ] gateway cache
+- [ ] implement all other endpoints
