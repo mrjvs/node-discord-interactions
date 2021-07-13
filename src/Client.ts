@@ -1,7 +1,7 @@
 import { GatewayClient } from "./gateway/GatewayClient";
 import { InteractionCollection } from "./interaction/InteractionCollection";
 import { DiscordLogger, LogItem } from "./Logger";
-import { Message, MessageBuilder } from "./message/MessageBuilder";
+import { MessageBuilder } from "./message/MessageBuilder";
 import { doFetch, HttpMethods } from "./Request";
 import { Utils } from "./utils";
 

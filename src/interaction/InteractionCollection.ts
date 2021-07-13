@@ -1,9 +1,10 @@
 import { DiscordClient } from "../Client";
 import { LogType } from "../Logger";
 import { sign as signTools } from "tweetnacl";
+import { InteractionContext } from "./InteractionContext";
 
 export type InteractionId = string;
-export type InteractionCallback = () => void;
+export type InteractionCallback = (ctx: InteractionContext) => void;
 interface InteractionStore {
   id: InteractionId;
   cb: InteractionCallback;
@@ -78,7 +79,7 @@ export class InteractionCollection {
       return;
     }
     try {
-      handler?.cb();
+      handler?.cb(new InteractionContext(this.client, data));
     } catch (err) {
       this.client.logger.logItem({
         type: LogType.WARN,

@@ -55,7 +55,9 @@ export async function doFetch(
       ...headers,
     },
   });
-  const data = await res.json();
+  let txt = await res.text();
+  if (txt.length === 0) txt = "{}";
+  const data = JSON.parse(txt);
   if (res.status === 401) {
     throw new UnauthorizedException(res, data);
   }

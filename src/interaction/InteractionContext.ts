@@ -1,45 +1,99 @@
 import { DiscordClient } from "../Client";
+import { MessageBuilder } from "../message/MessageBuilder";
+import { doFetch, HttpMethods } from "../Request";
 
 export enum InteractionType {
   COMPONENTS = "components",
   SLASHCOMMANDS = "slashcommands",
+  PING = "ping",
+}
+
+const interactionMap: any = {
+  "1": "ping",
+  "2": "slashcommands",
+  "3": "components",
+};
+
+export interface IInteraction {
+  id: string;
+  application_id: string;
+  type: number;
+  token: string;
+  version: number;
+
+  data?: any;
+  guild_id?: string;
+  channel_id?: string;
+  member?: any;
+  user?: any;
+  message?: any;
 }
 
 class InteractionResponse {
   #type: InteractionType;
+  #client: DiscordClient;
+  #raw: any; // parse raw data
 
-  // TODO actually do stuff
   // TODO follow ups
-  constructor(type: InteractionType) {
-    this.#type = type;
+  constructor(client: DiscordClient, data: IInteraction) {
+    this.#type = interactionMap[data.type.toString()];
+    this.#client = client;
+    this.#raw = data;
   }
 
   get type(): InteractionType {
     return this.#type;
   }
 
-  async ackknowledge(): Promise<void> {
-    console.log("acknowledged interaction");
+  get client(): DiscordClient {
+    return this.#client;
   }
 
-  async respond(): Promise<void> {
-    console.log("responding to interaction");
+  get raw(): IInteraction {
+    return this.#raw;
   }
 
-  async sendLoading(): Promise<void> {
-    console.log("responding to interaction later");
+  async #runResponse(type: number, data: any): Promise<any> {
+    return await doFetch(
+      `/interactions/${this.#raw.id}/${this.#raw.token}/callback`,
+      {
+        auth: true,
+        client: this.client,
+        body: {
+          type,
+          data,
+        },
+        method: HttpMethods.POST,
+      }
+    );
   }
 
-  async updateMessage(): Promise<void> {
+  async acknowledge(): Promise<void> {
+    let type = 4; // acknowledge without reply
+    if (this.type === InteractionType.COMPONENTS) type = 6; // will update component message later
+    return await this.#runResponse(type, {});
+  }
+
+  async respond(
+    message: MessageBuilder,
+    hiddenForOthers: boolean = false
+  ): Promise<void> {
+    return await this.#runResponse(4, {
+      ...message.raw,
+      flags: hiddenForOthers ? 64 : 0, // TODO make bitfields
+    });
+  }
+
+  async sendLoading(hiddenForOthers: boolean = false): Promise<void> {
+    return await this.#runResponse(5, {
+      flags: hiddenForOthers ? 64 : 0, // TODO make bitfields
+    });
+  }
+
+  async updateMessage(message: MessageBuilder): Promise<void> {
     if (this.type !== InteractionType.COMPONENTS)
       throw new Error("Can only be ran on components");
-    console.log("updating component message");
-  }
-
-  async deferUpdateMessage(): Promise<void> {
-    if (this.type !== InteractionType.COMPONENTS)
-      throw new Error("Can only be ran on components");
-    console.log("updating component message later");
+    return await this.#runResponse(4, message.raw);
   }
 }
 
@@ -47,8 +101,8 @@ export class InteractionContext {
   #interact: InteractionResponse;
   #client: DiscordClient;
 
-  constructor(client: DiscordClient) {
-    this.#interact = new InteractionResponse(InteractionType.COMPONENTS);
+  constructor(client: DiscordClient, data: IInteraction) {
+    this.#interact = new InteractionResponse(client, data);
     this.#client = client;
   }
 
