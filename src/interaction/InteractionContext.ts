@@ -57,7 +57,6 @@ class InteractionResponse {
     return await doFetch(
       `/interactions/${this.#raw.id}/${this.#raw.token}/callback`,
       {
-        auth: true,
         client: this.client,
         body: {
           type,
