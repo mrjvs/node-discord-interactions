@@ -1,5 +1,6 @@
 import { InteractionContext } from "../../src/interaction/InteractionContext";
-import { DiscordClient, config, SelectMenu, Button, Message } from "./lib";
+import { MessageInputType } from "../../src/message/components/ComponentTypes";
+import { DiscordClient, config, SelectMenu, Message, Input } from "./lib";
 
 const client = new DiscordClient({
   token: config.token,
@@ -12,6 +13,11 @@ const client = new DiscordClient({
 
 async function bootstrap() {
   await client.gateway.login();
+
+  const modalSubmit = client.interactions.register((ctx) => {
+    console.log(JSON.stringify(ctx.interaction.raw, null, 2));
+    ctx.interaction.acknowledge();
+  });
 
   const genericInteraction = client.interactions.register(
     (ctx: InteractionContext) => {
@@ -34,7 +40,7 @@ async function bootstrap() {
           break;
         case "4":
           console.log("interaction sent response (hidden)");
-          ctx.interaction.respond(
+          ctx.interaction.respondMessage(
             Message.create({
               content:
                 "Hello world (and just for you, you deserve all the good things in life, stay happy)",
@@ -44,7 +50,7 @@ async function bootstrap() {
           break;
         case "5":
           console.log("interaction sent response (public)");
-          ctx.interaction.respond(
+          ctx.interaction.respondMessage(
             Message.create({
               content: "Hello world (public)",
             })
@@ -56,6 +62,31 @@ async function bootstrap() {
             Message.create({
               content: "The button has been pressed",
             })
+          );
+          break;
+        case "7":
+          console.log("interaction updated message");
+          ctx.interaction.respondModal(
+            "Dad jokes modal",
+            [
+              Input.create(
+                {
+                  style: MessageInputType.SHORT,
+                  label: "Your name",
+                  id: "name",
+                },
+                client
+              ),
+              Input.create(
+                {
+                  style: MessageInputType.PARAGRAPH,
+                  label: "Your best dad joke",
+                  id: "joke",
+                },
+                client
+              ),
+            ],
+            modalSubmit
           );
           break;
       }
@@ -101,6 +132,11 @@ async function bootstrap() {
                   value: "6",
                   description: "Will destruct the menu, be careful",
                 },
+                {
+                  label: "Show me modals",
+                  value: "7",
+                  description: "give me your best dad jokes!",
+                },
               ],
               onInteract: genericInteraction,
             },
@@ -110,7 +146,8 @@ async function bootstrap() {
       ],
     })
   );
+
   console.log("sent message successfully");
 }
 
-bootstrap();
+bootstrap().catch((err) => console.error(err));

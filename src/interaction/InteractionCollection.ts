@@ -84,7 +84,7 @@ export class InteractionCollection {
       this.client.logger.logItem({
         type: LogType.WARN,
         message: `Exception occured at interaction handler for id: ${data?.data?.custom_id}`,
-        exception: err,
+        exception: err as Error,
       });
     }
     if (handler.useOnce) this.handlers.delete(handler.id);

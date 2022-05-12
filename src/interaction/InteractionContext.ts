@@ -1,17 +1,22 @@
 import { DiscordClient } from "../Client";
+import { MessageActionRowBuilder } from "../message/components/MessageActionRowBuilder";
+import { MessageComponent } from "../message/components/MessageComponent";
 import { MessageBuilder } from "../message/MessageBuilder";
 import { doFetch, HttpMethods } from "../Request";
+import { InteractionHandler } from "./InteractionCollection";
 
 export enum InteractionType {
   COMPONENTS = "components",
   SLASHCOMMANDS = "slashcommands",
   PING = "ping",
+  MODAL_SUBMIT = "modalsubmit",
 }
 
 const interactionMap: any = {
   "1": "ping",
   "2": "slashcommands",
   "3": "components",
+  "5": "modalsubmit",
 };
 
 export interface IInteraction {
@@ -73,13 +78,29 @@ class InteractionResponse {
     return await this.#runResponse(type, {});
   }
 
-  async respond(
+  async respondMessage(
     message: MessageBuilder,
     hiddenForOthers: boolean = false
   ): Promise<void> {
     return await this.#runResponse(4, {
       ...message.raw,
       flags: hiddenForOthers ? 64 : 0, // TODO make bitfields
+    });
+  }
+
+  async respondModal(
+    title: string,
+    components: MessageComponent[],
+    handler: InteractionHandler
+  ): Promise<void> {
+    if (components.length > 5 || components.length == 0)
+      throw new Error(`modals must have at least 1 and max 5 components`);
+    return await this.#runResponse(9, {
+      title,
+      components: components.map((v) => {
+        return new MessageActionRowBuilder().addComponent(v).raw;
+      }),
+      custom_id: handler.id,
     });
   }
 
