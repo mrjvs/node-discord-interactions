@@ -1,5 +1,6 @@
 import { InteractionContext } from "../../src/interaction/InteractionContext";
 import { MessageInputType } from "../../src/message/components/ComponentTypes";
+import { MessageBuilder } from "../../src/message/MessageBuilder";
 import { DiscordClient, config, SelectMenu, Message, Input } from "./lib";
 
 const client = new DiscordClient({
@@ -16,7 +17,12 @@ async function bootstrap() {
 
   const modalSubmit = client.interactions.register((ctx) => {
     console.log(JSON.stringify(ctx.interaction.raw, null, 2));
-    ctx.interaction.acknowledge();
+    ctx.interaction.respondMessage(
+      Message.create({
+        content: "Thanks for submitting!",
+      }),
+      true
+    );
   });
 
   const genericInteraction = client.interactions.register(
